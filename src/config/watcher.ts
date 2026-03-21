@@ -11,8 +11,8 @@ import {
  * Calls `onConfigChanged` (debounced) when any .json file changes.
  */
 export function createConfigWatchers(
-  globalDir: string,
-  projectDir: string | undefined,
+  globalDirUri: Uri | undefined,
+  projectDirUri: Uri | undefined,
   onConfigChanged: () => void
 ): Disposable[] {
   const disposables: Disposable[] = [];
@@ -25,8 +25,8 @@ export function createConfigWatchers(
     debounceTimer = setTimeout(onConfigChanged, 300);
   }
 
-  function watchDir(dirPath: string): FileSystemWatcher {
-    const pattern = new RelativePattern(Uri.file(dirPath), "*.json");
+  function watchDir(dirUri: Uri): FileSystemWatcher {
+    const pattern = new RelativePattern(dirUri, "*.json");
     const watcher = workspace.createFileSystemWatcher(pattern);
     watcher.onDidCreate(debouncedReload);
     watcher.onDidChange(debouncedReload);
@@ -35,11 +35,13 @@ export function createConfigWatchers(
   }
 
   // Watch global config directory
-  disposables.push(watchDir(globalDir));
+  if (globalDirUri) {
+    disposables.push(watchDir(globalDirUri));
+  }
 
   // Watch project config directory
-  if (projectDir) {
-    disposables.push(watchDir(projectDir));
+  if (projectDirUri) {
+    disposables.push(watchDir(projectDirUri));
   }
 
   return disposables;

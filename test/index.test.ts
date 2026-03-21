@@ -39,6 +39,9 @@ jest.mock(
         registerCommand: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         getCommands: jest.fn().mockResolvedValue([]),
       },
+      env: {
+        uiKind: 1, // UIKind.Desktop
+      },
       Uri: {
         file: jest.fn().mockImplementation((p: string) => ({ fsPath: p, toString: () => p })),
         joinPath: jest.fn().mockImplementation((base: any, ...parts: string[]) => ({

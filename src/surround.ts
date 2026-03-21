@@ -13,7 +13,7 @@ import {
   Position,
 } from "vscode";
 import { IResolvedSnippet, ISurroundConfig } from "./config/types";
-import { loadAllSnippets, getGlobalConfigDir, getProjectConfigDir, hasLegacyCustomConfig } from "./config/loader";
+import { loadAllSnippets, getGlobalConfigDirUri, getProjectConfigDirUri, hasLegacyCustomConfig } from "./config/loader";
 import { createConfigWatchers } from "./config/watcher";
 import { exportSettingsToFile } from "./config/exportSettings";
 import { showWhatsNewPage } from "./whatsNew";
@@ -326,9 +326,9 @@ export function activate(context: ExtensionContext) {
   );
 
   // Watch for config file changes
-  const globalDir = getGlobalConfigDir();
-  const projectDir = getProjectConfigDir();
-  const watchers = createConfigWatchers(globalDir, projectDir, () => {
+  const globalDirUri = getGlobalConfigDirUri();
+  const projectDirUri = getProjectConfigDirUri();
+  const watchers = createConfigWatchers(globalDirUri, projectDirUri, () => {
     void update();
   });
   for (const watcher of watchers) {

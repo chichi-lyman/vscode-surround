@@ -1,6 +1,4 @@
-import * as os from "os";
-import * as path from "path";
-import { workspace, window, Uri } from "vscode";
+import { workspace, window, Uri, env } from "vscode";
 import {
   ISurroundConfig,
   ISurroundConfigFile,
@@ -12,28 +10,36 @@ import {
 } from "./types";
 import { builtinSnippets } from "./defaults";
 
-/** Get the global config directory path */
-export function getGlobalConfigDir(): string {
+/** Get the global config directory URI */
+export function getGlobalConfigDirUri(): Uri | undefined {
+  // Global config dir requires a local file system (not available in web)
+  if (env.uiKind === 2 /* UIKind.Web */) {
+    return undefined;
+  }
+
   const configured = workspace
     .getConfiguration("surround")
     .get<string>("globalConfigDir");
+
   if (configured) {
-    // Expand ~ to home directory
     if (configured.startsWith("~")) {
-      return path.join(os.homedir(), configured.slice(1));
+      const homeDir = process.env.HOME || process.env.USERPROFILE || "";
+      return Uri.file(homeDir + configured.slice(1));
     }
-    return configured;
+    return Uri.file(configured);
   }
-  return path.join(os.homedir(), ".vscode-surround");
+
+  const homeDir = process.env.HOME || process.env.USERPROFILE || "";
+  return Uri.joinPath(Uri.file(homeDir), ".vscode-surround");
 }
 
-/** Get the project config directory path, if a workspace is open */
-export function getProjectConfigDir(): string | undefined {
-  const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
-  if (!workspaceRoot) {
+/** Get the project config directory URI, if a workspace is open */
+export function getProjectConfigDirUri(): Uri | undefined {
+  const workspaceUri = workspace.workspaceFolders?.[0]?.uri;
+  if (!workspaceUri) {
     return undefined;
   }
-  return path.join(workspaceRoot, ".vscode-surround");
+  return Uri.joinPath(workspaceUri, ".vscode-surround");
 }
 
 /** Flatten config items (groups + standalone snippets) into resolved snippets */
@@ -64,11 +70,10 @@ export function flattenItems(
 }
 
 /** Read and parse all JSON config files from a directory */
-async function readConfigDir(
-  dirPath: string,
+async function readConfigDirUri(
+  dirUri: Uri,
   source: SnippetSource
 ): Promise<IResolvedSnippet[]> {
-  const dirUri = Uri.file(dirPath);
   let entries: [string, number][];
 
   try {
@@ -79,8 +84,9 @@ async function readConfigDir(
   }
 
   const snippets: IResolvedSnippet[] = [];
+  const decoder = new TextDecoder("utf-8");
 
-  for (const [name, type] of entries) {
+  for (const [name] of entries) {
     if (!name.endsWith(".json")) {
       continue;
     }
@@ -88,7 +94,7 @@ async function readConfigDir(
     const fileUri = Uri.joinPath(dirUri, name);
     try {
       const content = await workspace.fs.readFile(fileUri);
-      const text = Buffer.from(content).toString("utf-8");
+      const text = decoder.decode(content);
       const config: ISurroundConfigFile = JSON.parse(text);
 
       if (!config.items || !Array.isArray(config.items)) {
@@ -184,16 +190,18 @@ export async function loadAllSnippets(): Promise<ISurroundConfig> {
   }
 
   // Layer 2: Global config files
-  const globalDir = getGlobalConfigDir();
-  const globalSnippets = await readConfigDir(globalDir, "global");
-  for (const snippet of globalSnippets) {
-    result[snippet.label] = snippet;
+  const globalDirUri = getGlobalConfigDirUri();
+  if (globalDirUri) {
+    const globalSnippets = await readConfigDirUri(globalDirUri, "global");
+    for (const snippet of globalSnippets) {
+      result[snippet.label] = snippet;
+    }
   }
 
   // Layer 3: Project config files
-  const projectDir = getProjectConfigDir();
-  if (projectDir) {
-    const projectSnippets = await readConfigDir(projectDir, "project");
+  const projectDirUri = getProjectConfigDirUri();
+  if (projectDirUri) {
+    const projectSnippets = await readConfigDirUri(projectDirUri, "project");
     for (const snippet of projectSnippets) {
       result[snippet.label] = snippet;
     }

@@ -1,7 +1,6 @@
-import * as path from "path";
 import { workspace, window, Uri, QuickPickItem } from "vscode";
 import { ISurroundSnippet, ISurroundConfigFile, ISurroundConfigItem } from "./types";
-import { getGlobalConfigDir, getProjectConfigDir, transformCustomToItems } from "./loader";
+import { getGlobalConfigDirUri, getProjectConfigDirUri, transformCustomToItems } from "./loader";
 
 /**
  * Build config items from settings.json snippets,
@@ -67,12 +66,11 @@ function buildConfigItems(
 
 /** Write config file to a directory, handling overwrite confirmation and directory creation */
 async function writeConfigToDir(
-  dirPath: string,
+  dirUri: Uri,
   jsonContent: string
 ): Promise<boolean> {
-  const dirUri = Uri.file(dirPath);
   const outputFile = Uri.joinPath(dirUri, "default.json");
-  const outputPath = path.join(dirPath, "default.json");
+  const outputPath = outputFile.fsPath || outputFile.toString();
 
   // Check if file already exists
   try {
@@ -93,10 +91,8 @@ async function writeConfigToDir(
     }
   }
 
-  await workspace.fs.writeFile(
-    outputFile,
-    Buffer.from(jsonContent, "utf-8")
-  );
+  const encoder = new TextEncoder();
+  await workspace.fs.writeFile(outputFile, encoder.encode(jsonContent));
 
   const openFile = await window.showInformationMessage(
     `Surround: Snippets exported to ${outputPath}.`,
@@ -148,25 +144,34 @@ export async function exportSettingsToFile(): Promise<void> {
   }
 
   // Build destination options
-  const globalDir = getGlobalConfigDir();
-  const projectDir = getProjectConfigDir();
+  const globalDirUri = getGlobalConfigDirUri();
+  const projectDirUri = getProjectConfigDirUri();
 
-  const picks: (QuickPickItem & { dirPath: string })[] = [
-    {
+  const picks: (QuickPickItem & { dirUri: Uri })[] = [];
+
+  if (globalDirUri) {
+    picks.push({
       label: "Global",
-      description: path.join(globalDir, "default.json"),
+      description: Uri.joinPath(globalDirUri, "default.json").fsPath,
       detail: "Available in all workspaces",
-      dirPath: globalDir,
-    },
-  ];
+      dirUri: globalDirUri,
+    });
+  }
 
-  if (projectDir) {
+  if (projectDirUri) {
     picks.push({
       label: "Workspace",
-      description: path.join(projectDir, "default.json"),
+      description: Uri.joinPath(projectDirUri, "default.json").path,
       detail: "Only available in this workspace",
-      dirPath: projectDir,
+      dirUri: projectDirUri,
     });
+  }
+
+  if (picks.length === 0) {
+    window.showWarningMessage(
+      "Surround: No export destination available. Open a workspace to export to a project config file."
+    );
+    return;
   }
 
   const selected = await window.showQuickPick(picks, {
@@ -185,5 +190,5 @@ export async function exportSettingsToFile(): Promise<void> {
   const configFile: ISurroundConfigFile = { items };
   const jsonContent = JSON.stringify(configFile, null, 2);
 
-  await writeConfigToDir(selected.dirPath, jsonContent);
+  await writeConfigToDir(selected.dirUri, jsonContent);
 }
