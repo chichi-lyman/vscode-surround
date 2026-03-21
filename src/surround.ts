@@ -193,6 +193,9 @@ async function showWelcomeOrWhatsNew(
     if (window.state.focused) {
       void context.globalState.update(PENDING_FOCUS, undefined);
       void context.globalState.update(SURROUND_LAST_VERSION_KEY, version);
+      if (previousVersion) {
+        showWhatsNewPage(context);
+      }
       void showMessage(context, version, previousVersion);
     } else {
       await context.globalState.update(PENDING_FOCUS, true);
@@ -206,6 +209,9 @@ async function showWelcomeOrWhatsNew(
         if (context.globalState.get(PENDING_FOCUS) === true) {
           void context.globalState.update(PENDING_FOCUS, undefined);
           void context.globalState.update(SURROUND_LAST_VERSION_KEY, version);
+          if (previousVersion) {
+            showWhatsNewPage(context);
+          }
           void showMessage(context, version, previousVersion);
         }
       });
