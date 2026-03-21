@@ -23,8 +23,8 @@ jest.mock(
   { virtual: true }
 );
 
-import { flattenItems } from "../../src/config/loader";
-import { ISurroundConfigItem } from "../../src/config/types";
+import { flattenItems, transformCustomToItems } from "../../src/config/loader";
+import { ISurroundConfigItem, ISurroundSnippet } from "../../src/config/types";
 
 describe("flattenItems", () => {
   it("should flatten a snippet group with languages", () => {
@@ -134,5 +134,55 @@ describe("flattenItems", () => {
 
     const result = flattenItems(items, "global");
     expect(result[0].disabled).toBe(true);
+  });
+});
+
+describe("transformCustomToItems", () => {
+  it("should transform key-value custom config to items array", () => {
+    const custom: Record<string, ISurroundSnippet> = {
+      log: {
+        label: "console.log",
+        snippet: "console.log($TM_SELECTED_TEXT)",
+      },
+      myAwait: {
+        label: "await",
+        snippet: "await ($TM_SELECTED_TEXT)",
+        commandName: "customAwait",
+      },
+    };
+
+    const result = transformCustomToItems(custom);
+    expect(result).toHaveLength(2);
+
+    // Key becomes commandName when not explicitly set
+    expect(result[0]).toEqual({
+      label: "console.log",
+      snippet: "console.log($TM_SELECTED_TEXT)",
+      commandName: "log",
+    });
+
+    // Explicit commandName is preserved
+    expect(result[1]).toEqual({
+      label: "await",
+      snippet: "await ($TM_SELECTED_TEXT)",
+      commandName: "customAwait",
+    });
+  });
+
+  it("should skip invalid entries", () => {
+    const custom: Record<string, any> = {
+      valid: { label: "test", snippet: "test" },
+      invalid: "not an object",
+      noLabel: { snippet: "missing label" },
+    };
+
+    const result = transformCustomToItems(custom);
+    expect(result).toHaveLength(1);
+    expect((result[0] as ISurroundSnippet).label).toBe("test");
+  });
+
+  it("should return empty array for empty input", () => {
+    const result = transformCustomToItems({});
+    expect(result).toHaveLength(0);
   });
 });

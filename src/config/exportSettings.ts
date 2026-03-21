@@ -1,7 +1,7 @@
 import * as path from "path";
 import { workspace, window, Uri, QuickPickItem } from "vscode";
 import { ISurroundSnippet, ISurroundConfigFile, ISurroundConfigItem } from "./types";
-import { getGlobalConfigDir, getProjectConfigDir } from "./loader";
+import { getGlobalConfigDir, getProjectConfigDir, transformCustomToItems } from "./loader";
 
 /**
  * Build config items from settings.json snippets,
@@ -119,8 +119,9 @@ export async function exportSettingsToFile(): Promise<void> {
   const config = workspace.getConfiguration("surround");
   const withConfig = config.get<Record<string, ISurroundSnippet>>("with", {}) || {};
   const custom = config.get<Record<string, ISurroundSnippet>>("custom", {}) || {};
+  const itemsConfig = config.get<ISurroundConfigItem[]>("items", []) || [];
 
-  // Collect all snippets from settings
+  // Collect keyed snippets from surround.with.* and surround.custom
   const allSnippets: { key: string; snippet: ISurroundSnippet }[] = [];
 
   for (const [key, value] of Object.entries(withConfig)) {
@@ -135,7 +136,11 @@ export async function exportSettingsToFile(): Promise<void> {
     }
   }
 
-  if (allSnippets.length === 0) {
+  // Also include surround.items (already in the right format)
+  const hasKeyedSnippets = allSnippets.length > 0;
+  const hasItems = itemsConfig.length > 0;
+
+  if (!hasKeyedSnippets && !hasItems) {
     window.showInformationMessage(
       "Surround: No snippets found in settings.json to export."
     );
@@ -172,7 +177,11 @@ export async function exportSettingsToFile(): Promise<void> {
     return;
   }
 
-  const items = buildConfigItems(allSnippets);
+  // Build items from keyed snippets + merge with existing surround.items
+  const items = [
+    ...buildConfigItems(allSnippets),
+    ...itemsConfig,
+  ];
   const configFile: ISurroundConfigFile = { items };
   const jsonContent = JSON.stringify(configFile, null, 2);
 

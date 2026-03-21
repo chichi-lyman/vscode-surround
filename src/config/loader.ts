@@ -109,12 +109,35 @@ async function readConfigDir(
   return snippets;
 }
 
-/** Load snippets defined in settings.json (surround.with.* and surround.custom) */
+/** Transform legacy surround.custom entries into ISurroundConfigItem[] */
+export function transformCustomToItems(
+  custom: Record<string, ISurroundSnippet>
+): ISurroundConfigItem[] {
+  const items: ISurroundConfigItem[] = [];
+  for (const [key, value] of Object.entries(custom)) {
+    if (typeof value === "object" && value.label) {
+      items.push({
+        ...value,
+        commandName: value.commandName || key,
+      });
+    }
+  }
+  return items;
+}
+
+/** Check if user has legacy surround.custom entries that need migration */
+export function hasLegacyCustomConfig(): boolean {
+  const config = workspace.getConfiguration("surround");
+  const custom = config.get<Record<string, ISurroundSnippet>>("custom", {}) || {};
+  return Object.keys(custom).length > 0;
+}
+
+/** Load snippets defined in settings.json (surround.items, surround.custom, surround.with.*) */
 function loadSettingsSnippets(): IResolvedSnippet[] {
   const config = workspace.getConfiguration("surround");
   const snippets: IResolvedSnippet[] = [];
 
-  // Load surround.with.* settings
+  // Load surround.with.* settings (legacy keybinding-based)
   const withConfig = config.get<Record<string, ISurroundSnippet>>("with", {}) || {};
   for (const [key, value] of Object.entries(withConfig)) {
     if (typeof value === "object" && value.label) {
@@ -127,16 +150,17 @@ function loadSettingsSnippets(): IResolvedSnippet[] {
     }
   }
 
-  // Load surround.custom settings
+  // Load surround.items (new array-based format, same as config files)
+  const items = config.get<ISurroundConfigItem[]>("items", []) || [];
+  if (items.length > 0) {
+    snippets.push(...flattenItems(items, "settings"));
+  }
+
+  // Load surround.custom (deprecated — silently transform to items format)
   const custom = config.get<Record<string, ISurroundSnippet>>("custom", {}) || {};
-  for (const [key, value] of Object.entries(custom)) {
-    if (typeof value === "object" && value.label) {
-      snippets.push({
-        ...value,
-        _source: "settings",
-        _key: key,
-      });
-    }
+  if (Object.keys(custom).length > 0) {
+    const transformed = transformCustomToItems(custom);
+    snippets.push(...flattenItems(transformed, "settings"));
   }
 
   return snippets;

@@ -2,7 +2,7 @@
   "name": "vscode-surround",
   "displayName": "Surround",
   "description": "A simple yet powerful extension to add wrapper templates around your code blocks.",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "publisher": "yatki",
   "licence": "LICENCE",
   "bugs": {
@@ -83,10 +83,62 @@
           "markdownDescription": "Shows notification when there is a new version of the extension.",
           "default": true
         },
+        "surround.items": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "Custom surround snippets as an array of snippet groups or standalone snippets. Uses the same schema as `.vscode-surround/` config files. See [What's New](command:surround.whatsNew) for details.",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "description": "A group of snippets scoped to specific languages",
+                "required": ["snippets"],
+                "properties": {
+                  "languages": {
+                    "type": "array",
+                    "description": "Language IDs this group applies to",
+                    "items": { "type": "string" }
+                  },
+                  "snippets": {
+                    "type": "array",
+                    "description": "Snippets in this group",
+                    "items": {
+                      "type": "object",
+                      "required": ["label", "snippet"],
+                      "properties": {
+                        "label": { "type": "string" },
+                        "description": { "type": "string" },
+                        "detail": { "type": "string" },
+                        "snippet": { "type": "string" },
+                        "disabled": { "type": "boolean" },
+                        "commandName": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "description": "A standalone snippet with optional language filtering",
+                "required": ["label", "snippet"],
+                "properties": {
+                  "label": { "type": "string" },
+                  "description": { "type": "string" },
+                  "detail": { "type": "string" },
+                  "snippet": { "type": "string" },
+                  "disabled": { "type": "boolean" },
+                  "languageIds": { "type": "array", "items": { "type": "string" } },
+                  "commandName": { "type": "string" }
+                }
+              }
+            ]
+          }
+        },
         "surround.custom": {
           "type": "object",
           "default": {},
-          "markdownDescription": "Custom surround snippets. Alternatively, you can use `.vscode-surround/` config files for file-based configuration."
+          "markdownDescription": "**Deprecated:** Use `surround.items` instead. Custom surround snippets as key-value pairs.",
+          "deprecationMessage": "This setting is deprecated. Please use 'surround.items' instead, which uses the same array format as config files."
         },
         "surround.globalConfigDir": {
           "type": "string",
@@ -109,6 +161,11 @@
       {
         "command": "surround.exportSettings",
         "title": "Export Settings to File",
+        "category": "Surround"
+      },
+      {
+        "command": "surround.whatsNew",
+        "title": "What's New",
         "category": "Surround"
       },
       {

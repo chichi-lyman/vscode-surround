@@ -13,9 +13,10 @@ import {
   Position,
 } from "vscode";
 import { IResolvedSnippet, ISurroundConfig } from "./config/types";
-import { loadAllSnippets, getGlobalConfigDir, getProjectConfigDir } from "./config/loader";
+import { loadAllSnippets, getGlobalConfigDir, getProjectConfigDir, hasLegacyCustomConfig } from "./config/loader";
 import { createConfigWatchers } from "./config/watcher";
 import { exportSettingsToFile } from "./config/exportSettings";
+import { showWhatsNewPage } from "./whatsNew";
 
 function getLanguageId(): string | undefined {
   let editor = window.activeTextEditor;
@@ -192,7 +193,7 @@ async function showWelcomeOrWhatsNew(
     if (window.state.focused) {
       void context.globalState.update(PENDING_FOCUS, undefined);
       void context.globalState.update(SURROUND_LAST_VERSION_KEY, version);
-      void showMessage(version, previousVersion);
+      void showMessage(context, version, previousVersion);
     } else {
       await context.globalState.update(PENDING_FOCUS, true);
       const disposable = window.onDidChangeWindowState((e) => {
@@ -205,7 +206,7 @@ async function showWelcomeOrWhatsNew(
         if (context.globalState.get(PENDING_FOCUS) === true) {
           void context.globalState.update(PENDING_FOCUS, undefined);
           void context.globalState.update(SURROUND_LAST_VERSION_KEY, version);
-          void showMessage(version, previousVersion);
+          void showMessage(context, version, previousVersion);
         }
       });
       context.subscriptions.push(disposable);
@@ -213,7 +214,11 @@ async function showWelcomeOrWhatsNew(
   }
 }
 
-async function showMessage(version: string, previousVersion?: string) {
+async function showMessage(
+  context: ExtensionContext,
+  version: string,
+  previousVersion?: string
+) {
   const whatsNew = { title: "What's New" };
   const giveAStar = { title: "★ Give a star" };
   const sponsor = { title: "❤ Sponsor" };
@@ -238,7 +243,7 @@ async function showMessage(version: string, previousVersion?: string) {
 
   switch (result) {
     case whatsNew:
-      await env.openExternal(Uri.parse("https://github.com/yatki/vscode-surround/releases"));
+      showWhatsNewPage(context);
       break;
     case giveAStar:
       await env.openExternal(Uri.parse("https://github.com/yatki/vscode-surround"));
@@ -249,6 +254,40 @@ async function showMessage(version: string, previousVersion?: string) {
     default:
       break;
   }
+}
+
+const MIGRATION_DISMISSED_KEY = "yatki.vscode-surround:migration-dismissed";
+
+async function showMigrationToast(context: ExtensionContext): Promise<void> {
+  if (!hasLegacyCustomConfig()) {
+    return;
+  }
+
+  const dismissed = context.globalState.get<boolean>(MIGRATION_DISMISSED_KEY);
+  if (dismissed) {
+    return;
+  }
+
+  const showSettings: MessageItem = { title: "Show Settings" };
+  const preferFiles: MessageItem = { title: "Prefer Config Files" };
+
+  const result = await window.showInformationMessage(
+    "Surround: \"surround.custom\" is deprecated. Your snippets still work, but consider migrating to \"surround.items\" or config files.",
+    showSettings,
+    preferFiles
+  );
+
+  if (result === showSettings) {
+    await commands.executeCommand(
+      "workbench.action.openSettings",
+      "surround.items"
+    );
+  } else if (result === preferFiles) {
+    await commands.executeCommand("surround.exportSettings");
+  }
+
+  // Dismiss after any interaction (including closing the toast)
+  await context.globalState.update(MIGRATION_DISMISSED_KEY, true);
 }
 
 export function activate(context: ExtensionContext) {
@@ -295,8 +334,16 @@ export function activate(context: ExtensionContext) {
     commands.registerCommand("surround.exportSettings", exportSettingsToFile)
   );
 
+  // Register What's New command
+  context.subscriptions.push(
+    commands.registerCommand("surround.whatsNew", () => {
+      showWhatsNewPage(context);
+    })
+  );
+
   void update();
   void showWelcomeOrWhatsNew(context, surroundVersion, previousVersion);
+  void showMigrationToast(context);
 
   let disposable = commands.registerCommand("surround.with", async () => {
     let quickPickItems = filterSurroundItems(
