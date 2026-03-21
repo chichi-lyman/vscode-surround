@@ -86,8 +86,7 @@
         "surround.custom": {
           "type": "object",
           "default": {},
-          "markdownDescription": "**[Deprecated]** Custom snippets. Use `.vscode-surround/` config files instead. Run `Surround: Migrate Config` to migrate.",
-          "deprecationMessage": "Use .vscode-surround/ config files instead. Run 'Surround: Migrate Config' to migrate."
+          "markdownDescription": "Custom surround snippets. Alternatively, you can use `.vscode-surround/` config files for file-based configuration."
         },
         "surround.globalConfigDir": {
           "type": "string",
@@ -108,8 +107,8 @@
         "title": "Surround With"
       },
       {
-        "command": "surround.migrateConfig",
-        "title": "Migrate Config",
+        "command": "surround.exportSettings",
+        "title": "Export Settings to File",
         "category": "Surround"
       },
       {

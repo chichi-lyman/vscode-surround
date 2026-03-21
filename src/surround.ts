@@ -15,7 +15,7 @@ import {
 import { IResolvedSnippet, ISurroundConfig } from "./config/types";
 import { loadAllSnippets, getGlobalConfigDir, getProjectConfigDir } from "./config/loader";
 import { createConfigWatchers } from "./config/watcher";
-import { migrateConfig } from "./config/migration";
+import { exportSettingsToFile } from "./config/exportSettings";
 
 function getLanguageId(): string | undefined {
   let editor = window.activeTextEditor;
@@ -273,7 +273,7 @@ export function activate(context: ExtensionContext) {
     await registerCommands(context, surroundConfig);
   }
 
-  // Watch for settings.json changes (behavior settings + deprecated snippets)
+  // Watch for settings.json changes (behavior settings + snippet definitions)
   context.subscriptions.push(
     workspace.onDidChangeConfiguration(() => {
       void update();
@@ -290,9 +290,9 @@ export function activate(context: ExtensionContext) {
     context.subscriptions.push(watcher);
   }
 
-  // Register migration command
+  // Register export settings command
   context.subscriptions.push(
-    commands.registerCommand("surround.migrateConfig", migrateConfig)
+    commands.registerCommand("surround.exportSettings", exportSettingsToFile)
   );
 
   void update();

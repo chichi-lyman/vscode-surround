@@ -4,13 +4,13 @@ import { ISurroundSnippet, ISurroundConfigFile, ISurroundConfigItem } from "./ty
 import { getGlobalConfigDir } from "./loader";
 
 /**
- * Migrate snippets from settings.json to file-based config.
+ * Export snippets from settings.json to a file-based config.
  * Groups snippets by languageIds to create efficient config groups.
  */
-export async function migrateConfig(): Promise<void> {
+export async function exportSettingsToFile(): Promise<void> {
   const config = workspace.getConfiguration("surround");
-  const withConfig = config.get<Record<string, ISurroundSnippet>>("with", {});
-  const custom = config.get<Record<string, ISurroundSnippet>>("custom", {});
+  const withConfig = config.get<Record<string, ISurroundSnippet>>("with", {}) || {};
+  const custom = config.get<Record<string, ISurroundSnippet>>("custom", {}) || {};
 
   // Collect all snippets from settings
   const allSnippets: { key: string; snippet: ISurroundSnippet }[] = [];
@@ -29,7 +29,7 @@ export async function migrateConfig(): Promise<void> {
 
   if (allSnippets.length === 0) {
     window.showInformationMessage(
-      "Surround: No snippets found in settings.json to migrate."
+      "Surround: No snippets found in settings.json to export."
     );
     return;
   }
@@ -128,8 +128,7 @@ export async function migrateConfig(): Promise<void> {
   );
 
   const openFile = await window.showInformationMessage(
-    `Surround: Migration complete! Snippets written to ${path.join(globalDir, "default.json")}. ` +
-      "You can now remove surround.with.* and surround.custom from your settings.json.",
+    `Surround: Snippets exported to ${path.join(globalDir, "default.json")}.`,
     "Open File"
   );
 

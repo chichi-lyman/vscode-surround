@@ -12,8 +12,6 @@ import {
 } from "./types";
 import { builtinSnippets } from "./defaults";
 
-let deprecationWarningShown = false;
-
 /** Get the global config directory path */
 export function getGlobalConfigDir(): string {
   const configured = workspace
@@ -111,17 +109,15 @@ async function readConfigDir(
   return snippets;
 }
 
-/** Load deprecated settings.json snippets */
+/** Load snippets defined in settings.json (surround.with.* and surround.custom) */
 function loadSettingsSnippets(): IResolvedSnippet[] {
   const config = workspace.getConfiguration("surround");
   const snippets: IResolvedSnippet[] = [];
-  let hasSettingsSnippets = false;
 
-  // Load surround.with.* settings (the old built-in overrides)
+  // Load surround.with.* settings
   const withConfig = config.get<Record<string, ISurroundSnippet>>("with", {}) || {};
   for (const [key, value] of Object.entries(withConfig)) {
     if (typeof value === "object" && value.label) {
-      hasSettingsSnippets = true;
       snippets.push({
         ...value,
         commandName: value.commandName || key,
@@ -135,28 +131,12 @@ function loadSettingsSnippets(): IResolvedSnippet[] {
   const custom = config.get<Record<string, ISurroundSnippet>>("custom", {}) || {};
   for (const [key, value] of Object.entries(custom)) {
     if (typeof value === "object" && value.label) {
-      hasSettingsSnippets = true;
       snippets.push({
         ...value,
         _source: "settings",
         _key: key,
       });
     }
-  }
-
-  if (hasSettingsSnippets && !deprecationWarningShown) {
-    deprecationWarningShown = true;
-    window.showWarningMessage(
-      "Surround: Snippets in settings.json are deprecated. " +
-        'Run "Surround: Migrate Config" to move them to config files.',
-      "Migrate Now"
-    ).then((choice) => {
-      if (choice === "Migrate Now") {
-        import("vscode").then(({ commands }) => {
-          commands.executeCommand("surround.migrateConfig");
-        });
-      }
-    });
   }
 
   return snippets;
@@ -195,7 +175,7 @@ export async function loadAllSnippets(): Promise<ISurroundConfig> {
     }
   }
 
-  // Layer 4: settings.json (deprecated)
+  // Layer 4: settings.json
   const settingsSnippets = loadSettingsSnippets();
   for (const snippet of settingsSnippets) {
     result[snippet.label] = snippet;
