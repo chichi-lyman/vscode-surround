@@ -72,7 +72,7 @@ describe("activate", () => {
   it("should read the correct previous version", () => {
     activate(context as unknown as ExtensionContext);
 
-    expect(context.globalState.get).toBeCalledWith(
+    expect(context.globalState.get).toHaveBeenCalledWith(
       "yatki.vscode-surround:last-version"
     );
   });

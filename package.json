@@ -62,7 +62,7 @@
     "*"
   ],
   "main": "./out/surround.js",
-  "browser": "./out/surround.js",
+  "browser": "./out/surround.web.js",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -92,26 +92,45 @@
               {
                 "type": "object",
                 "description": "A group of snippets scoped to specific languages",
-                "required": ["snippets"],
+                "required": [
+                  "snippets"
+                ],
                 "properties": {
                   "languages": {
                     "type": "array",
                     "description": "Language IDs this group applies to",
-                    "items": { "type": "string" }
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "snippets": {
                     "type": "array",
                     "description": "Snippets in this group",
                     "items": {
                       "type": "object",
-                      "required": ["label", "snippet"],
+                      "required": [
+                        "label",
+                        "snippet"
+                      ],
                       "properties": {
-                        "label": { "type": "string" },
-                        "description": { "type": "string" },
-                        "detail": { "type": "string" },
-                        "snippet": { "type": "string" },
-                        "disabled": { "type": "boolean" },
-                        "commandName": { "type": "string" }
+                        "label": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "detail": {
+                          "type": "string"
+                        },
+                        "snippet": {
+                          "type": "string"
+                        },
+                        "disabled": {
+                          "type": "boolean"
+                        },
+                        "commandName": {
+                          "type": "string"
+                        }
                       }
                     }
                   }
@@ -120,15 +139,35 @@
               {
                 "type": "object",
                 "description": "A standalone snippet with optional language filtering",
-                "required": ["label", "snippet"],
+                "required": [
+                  "label",
+                  "snippet"
+                ],
                 "properties": {
-                  "label": { "type": "string" },
-                  "description": { "type": "string" },
-                  "detail": { "type": "string" },
-                  "snippet": { "type": "string" },
-                  "disabled": { "type": "boolean" },
-                  "languageIds": { "type": "array", "items": { "type": "string" } },
-                  "commandName": { "type": "string" }
+                  "label": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "detail": {
+                    "type": "string"
+                  },
+                  "snippet": {
+                    "type": "string"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "languageIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "commandName": {
+                    "type": "string"
+                  }
                 }
               }
             ]
@@ -303,9 +342,11 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && node esbuild.js",
+    "watch": "npm run check-types && node esbuild.js --watch",
+    "check-types": "tsc -p ./ --noEmit",
+    "package": "npm run check-types && node esbuild.js --production",
     "lint": "eslint src --ext ts",
     "test": "jest",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
@@ -317,6 +358,7 @@
     "@typescript-eslint/eslint-plugin": "^8.57.1",
     "@typescript-eslint/parser": "^8.57.1",
     "@vscode/test-web": "^0.0.80",
+    "esbuild": "^0.27.4",
     "eslint": "^10.1.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.4.6",
