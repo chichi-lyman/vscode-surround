@@ -321,6 +321,186 @@
         "command": "surround.with.templateLiteralVariable",
         "title": "Template Literal Variable",
         "category": "Surround With"
+      },
+      {
+        "command": "surround.with.consoleLog",
+        "title": "console.log",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.consoleError",
+        "title": "console.error",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.promiseWrapper",
+        "title": "Promise",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.setTimeoutSnippet",
+        "title": "setTimeout",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.setIntervalSnippet",
+        "title": "setInterval",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.jsonStringify",
+        "title": "JSON.stringify",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.jsonParse",
+        "title": "JSON.parse",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.typeofCheck",
+        "title": "typeof",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.reactFragment",
+        "title": "<>Fragment</>",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.reactSuspense",
+        "title": "<Suspense>",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.reactConditional",
+        "title": "{condition && ...}",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.reactTernary",
+        "title": "{condition ? ... : ...}",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.reactMap",
+        "title": "{items.map(...)}",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyTryExcept",
+        "title": "try/except",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyTryExceptFinally",
+        "title": "try/except/finally",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyWith",
+        "title": "with",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyDef",
+        "title": "def",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyAsyncDef",
+        "title": "async def",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyClass",
+        "title": "class",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyFor",
+        "title": "for/in",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyWhile",
+        "title": "while",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyIf",
+        "title": "if/elif/else",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyIfMain",
+        "title": "if __name__ == \"__main__\"",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyDecorator",
+        "title": "@decorator",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.pyListComp",
+        "title": "list comprehension",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goIfErr",
+        "title": "if err != nil",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goFor",
+        "title": "for",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goForRange",
+        "title": "for range",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goFunc",
+        "title": "func",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goGoroutine",
+        "title": "goroutine",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goDefer",
+        "title": "defer",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goSelect",
+        "title": "select",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goSwitch",
+        "title": "switch",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goIfElse",
+        "title": "if/else",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goMethod",
+        "title": "method",
+        "category": "Surround With"
+      },
+      {
+        "command": "surround.with.goMutex",
+        "title": "mutex lock/unlock",
+        "category": "Surround With"
       }
     ],
     "keybindings": [
