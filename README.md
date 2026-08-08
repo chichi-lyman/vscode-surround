@@ -1,3 +1,59 @@
+# VSCode Surround Extension 🧩✨
+
+**Rapid Code Wrapping & Syntactic Enclosure Utility**  
+*Part of the [ChelseaWoods](https://github.com/chichi-lyman/ChelseaWoods) ecosystem by [@chichi-lyman](https://github.com/chichi-lyman)*
+
+---
+
+## 📌 Overview
+`vscode-surround` is a productivity extension designed to streamline wrapping selected code blocks with custom prefixes, suffixes, markdown blocks, or structural tags. It accelerates development across your frontend dashboards (`v0-saphira-ai`) and backend agent cores (`saphiras-asi-core`).
+
+---
+
+## ⚙️ Core Architecture & Modules
+
+| Module | File Path | Operational Focus |
+| :--- | :--- | :--- |
+| **`Extension Entry`** | `src/extension.ts` | Registers VSCode commands and keyboard shortcuts for quick wrapping. |
+| **`Surround Engine`** | `src/surround.ts` | Applies prefix and suffix wrappers to active text selections. |
+| **`Template Config`** | `package.json` | Defines custom user templates (Markdown codeblocks, HTML tags, Python decorators). |
+
+---
+
+## 🚀 Starter Extension Code (`src/extension.ts`)
+
+Here is a core TypeScript file to place inside your `vscode-surround` repository to handle quick-wrap actions:
+
+```typescript
+import * as vscode from 'vscode';
+
+export function activate(context: vscode.ExtensionContext) {
+    console.log('⚡ VSCode Surround extension is now active.');
+
+    let disposable = vscode.commands.registerCommand('vscode-surround.wrapMarkdown', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return; // No open text editor
+        }
+
+        const selection = editor.selection;
+        const text = editor.document.getText(selection);
+
+        editor.edit(editBuilder => {
+            // Wrap selected text in markdown Python codeblock
+            const wrappedText = `\`\`\`python\n${text}\n\`\`\``;
+            editBuilder.replace(selection, wrappedText);
+        });
+
+        vscode.window.showInformationMessage('✨ Code successfully wrapped in Markdown Python block!');
+    });
+
+    context.subscriptions.push(disposable);
+}
+
+export function deactivate() {}
+
+
 # Surround
 
 [![Visual Studio Marketplace](https://img.shields.io/vscode-marketplace/v/yatki.vscode-surround.svg?style=flat-square)](https://marketplace.visualstudio.com/items?itemName=yatki.vscode-surround)
